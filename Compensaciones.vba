@@ -1,7 +1,7 @@
 '+------------------------------------------------------------------+
 '| Author: Marco Cot         DAS:A669714                            |
 '| Program which allows to check compensations before month closing.|
-'| version: 2.1 [20241017]                                          |
+'| version: 2.2 [20250513]                                          |
 '+------------------------------------------------------------------+
 Sub DateConversion()
 
@@ -30,7 +30,6 @@ Sheets("FestivosClean").Range("A1").PasteSpecial Paste:=xlPasteValuesAndNumberFo
 Sheets("VALID").Range("A:BI").Copy
 Sheets("COMPENSACIONESClean").Range("A1").PasteSpecial Paste:=xlPasteValuesAndNumberFormats
  
-DeleteRows0
 DeleteRowsNotATOS
 DeleteRowsRejected
 DeleteRowsAbsence
@@ -100,7 +99,6 @@ Sub DeleteRowsNotATOS()
         End If
     Next i
 End Sub
-
 '+-----------------------------------------------------------------------------------------------+
 Sub DeleteRowsRejected()
     Dim ws As Worksheet
@@ -337,27 +335,6 @@ Sub DeleteRowsCurrentMonthTAB()
      
 End Sub
 '+-----------------------------------------------------------------------------------------------+
-Sub RemoveNonDateValues()
-    Dim ws As Worksheet
-    Dim lastRow As Long
-    Dim cell As Range
-    Dim col As Range
-    Dim i As Long
-    
-    
-    Set ws = ThisWorkbook.Sheets("COMPENSACIONES")
-    
-    lastRow = ws.Cells(ws.Rows.Count, "BO").End(xlUp).Row
-    
-    ' Loop through the rows to clear cell content if the value in column BO is less than 40000
-    For i = 2 To lastRow ' Start from row 2 assuming headers in row 1
-        If ws.Cells(i, "BO").Value < 40000 Then
-            ws.Cells(i, "BO").ClearContents
-        End If
-    Next i
-
-End Sub
-'+-----------------------------------------------------------------------------------------------+
 Sub UpdateComp()
 
     Dim LastRowCOMP As Long
@@ -423,72 +400,6 @@ Sub UnionHours()
     Next i
 End Sub
 '+-----------------------------------------------------------------------------------------------+
-Function CleanDate(ByVal DateFixed As String) As String
-    Dim result As String
-    Dim i As Long
-    Dim char As String
-    Dim parts() As String
-    Dim dayPart As String
-    Dim monthPart As String
-    Dim yearPart As String
-    Dim temp As String
-    
-    'Step 1: Sanitize the input by retaining only digits and slashes,
-    'and replacing certain delimiters with slashes
-    result = ""
-    For i = 1 To Len(DateFixed)
-        char = Mid(DateFixed, i, 1)
-        Select Case char
-            Case "0" To "9", "/"
-                result = result & char
-            Case ",", "\", "-", "."
-                result = result & "/"
-            ' Ignore all other characters
-        End Select
-    Next i
-    
-    'Step 2: Split the sanitized date into components
-    parts = Split(result, "/")
-    
-    'Ensure the date has three components (day, month, year)
-    If UBound(parts) = 2 Then
-        dayPart = parts(0)
-        monthPart = parts(1)
-        yearPart = parts(2)
-        
-        'Step 3: Swap day and month if the month value exceeds 12
-        If IsNumeric(monthPart) And Val(monthPart) > 12 Then
-            ' Swap dayPart and monthPart
-            temp = dayPart
-            dayPart = monthPart
-            monthPart = temp
-        End If
-        
-        'Reconstruct the date string
-        result = dayPart & "/" & monthPart & "/" & yearPart
-    End If
-    
-    CleanDate = result
-End Function
-'+-----------------------------------------------------------------------------------------------+
-Sub DeleteRows0()
-    Dim ws As Worksheet
-    Dim lastRow As Long
-    Dim i As Long
-    
-    Set ws = ThisWorkbook.Sheets("COMPENSACIONESClean")
-     
-    'Find the last row with data in column A
-    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
-    
-    'Loop through rows in reverse order to avoid issues when deleting rows
-    For i = lastRow To 2 Step -1
-        If ws.Cells(i, "A").Value = "0" Then
-            ws.Rows(i).Delete
-        End If
-    Next i
-End Sub
-'+-----------------------------------------------------------------------------------------------+
 Sub ShowPopup()
 
 'launch window
@@ -537,4 +448,55 @@ Sub AlternateRowShading()
         End If
     Next i
     
+    
 End Sub
+'+-----------------------------------------------------------------------------------------------+
+'+++CUSTOM FUNCTION++++
+Function CleanDate(ByVal DateFixed As String) As String
+    Dim result As String
+    Dim i As Long
+    Dim char As String
+    Dim parts() As String
+    Dim dayPart As String
+    Dim monthPart As String
+    Dim yearPart As String
+    Dim temp As String
+    
+    'Step 1: Sanitize the input by retaining only digits and slashes,
+    'and replacing certain delimiters with slashes
+    result = ""
+    For i = 1 To Len(DateFixed)
+        char = Mid(DateFixed, i, 1)
+        Select Case char
+            Case "0" To "9", "/"
+                result = result & char
+            Case ",", "\", "-", "."
+                result = result & "/"
+            ' Ignore all other characters
+        End Select
+    Next i
+    
+    'Step 2: Split the sanitized date into components
+    parts = Split(result, "/")
+    
+    'Ensure the date has three components (day, month, year)
+    If UBound(parts) = 2 Then
+        dayPart = parts(0)
+        monthPart = parts(1)
+        yearPart = parts(2)
+        
+        'Step 3: Swap day and month if the month value exceeds 12
+        If IsNumeric(monthPart) And Val(monthPart) > 12 Then
+            ' Swap dayPart and monthPart
+            temp = dayPart
+            dayPart = monthPart
+            monthPart = temp
+        End If
+        
+        'Reconstruct the date string
+        result = dayPart & "/" & monthPart & "/" & yearPart
+    End If
+    
+    CleanDate = result
+End Function
+'+-----------------------------------------------------------------------------------------------+
