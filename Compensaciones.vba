@@ -1,7 +1,7 @@
 '+------------------------------------------------------------------+
 '| Author: Marco Cot         DAS:A669714                            |
 '| Program which allows to check compensations before month closing.|
-'| version: 2.2 [20250513]                                          |
+'| version: 2.3 [20250604]                                          |
 '+------------------------------------------------------------------+
 Sub DateConversion()
 
@@ -173,8 +173,8 @@ Sub COMP_PENDIENTES()
  'FEEDS POWERBI SHEET
     
     Sheets("PowerBI").Select
-    lastRow = Application.WorksheetFunction.CountA(Range("A:A")) + 1
-    Range("A2:AA" & lastRow).Delete
+    lastRow = Application.WorksheetFunction.CountA(Range("A:A"))
+    Range("A2:L" & lastRow).Delete
 
     Sheets("TAB").Select
         
@@ -499,4 +499,5 @@ Function CleanDate(ByVal DateFixed As String) As String
     
     CleanDate = result
 End Function
-'+-----------------------------------------------------------------------------------------------+
+
+'+-----------------------------------------------------------------------------------------------+   
