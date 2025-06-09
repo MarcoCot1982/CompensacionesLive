@@ -1,7 +1,7 @@
 '+------------------------------------------------------------------+
 '| Author: Marco Cot         DAS:A669714                            |
 '| Program which allows to check compensations before month closing.|
-'| version: 2.3 [20250604]                                          |
+'| version: 2.3 [20250609]                                          |
 '+------------------------------------------------------------------+
 Sub DateConversion()
 
@@ -54,6 +54,8 @@ Sheets("Compens").Outline.ShowLevels RowLevels:=0, ColumnLevels:=1
 Sheets("TAB").Outline.ShowLevels RowLevels:=0, ColumnLevels:=1
 
 COMP_PENDIENTES
+
+PlannedORbaja
 
 'Closing steps
 DeleteRowsCurrentMonthTAB
@@ -147,20 +149,24 @@ End Sub
 Sub RemoveDuplicatesBasedOnTwoColumns()
     Dim ws As Worksheet
     Dim lastRow As Long
-    
+    Dim i As Long
+    Dim dict As Object
+
     Set ws = ThisWorkbook.Sheets("FESTIVOSClean")
+    lastRow = ws.Cells(ws.Rows.Count, "BJ").End(xlUp).Row
+    Set dict = CreateObject("Scripting.Dictionary")
     
-    'Find the last row with data in Column B
-    lastRow = ws.Cells(ws.Rows.Count, "B").End(xlUp).Row
-    
-    'Select the data range including headers
-    Range("A2:BK" & lastRow).Select
-    
-    'Remove duplicates based on GIN and DATE
-    Selection.RemoveDuplicates Columns:=Array(2, 15), Header:=xlYes
-    
-    'Deselect the range
-    ws.Cells(1, 1).Select
+    ' Loop from bottom to top to safely delete rows
+    For i = lastRow To 2 Step -1 ' Assuming row 1 is header
+        Dim val As Variant
+        val = ws.Cells(i, "BJ").Value
+
+        If dict.exists(val) Then
+            ws.Rows(i).Delete
+        Else
+            dict.Add val, 1
+        End If
+    Next i
 
 End Sub
 '+-----------------------------------------------------------------------------------------------+
@@ -486,7 +492,7 @@ Function CleanDate(ByVal DateFixed As String) As String
         yearPart = parts(2)
         
         'Step 3: Swap day and month if the month value exceeds 12
-        If IsNumeric(monthPart) And Val(monthPart) > 12 Then
+        If IsNumeric(monthPart) And val(monthPart) > 12 Then
             ' Swap dayPart and monthPart
             temp = dayPart
             dayPart = monthPart
@@ -500,4 +506,42 @@ Function CleanDate(ByVal DateFixed As String) As String
     CleanDate = result
 End Function
 
-'+-----------------------------------------------------------------------------------------------+   
+'+-----------------------------------------------------------------------------------------------+
+
+'+-----------------------------------------------------------------------------------------------+
+Sub PlannedORbaja()
+
+    Dim lastRow As Long
+    Dim wsSoporte As Worksheet
+    Dim wsPowerBI As Worksheet
+
+    ' Set worksheet references
+    Set wsSoporte = Sheets("SOPORTE")
+    Set wsPowerBI = Sheets("PowerBI")
+
+    ' Find and delete rows in SOPORTE
+    With wsSoporte
+        lastRow = .Cells(.Rows.Count, "A").End(xlUp).Row
+        If lastRow >= 3 Then
+            .Rows("3:" & lastRow).Delete
+        End If
+    End With
+
+    ' Copy from PowerBI to SOPORTE
+    With wsPowerBI
+        lastRow = .Cells(.Rows.Count, "A").End(xlUp).Row
+        .Range("A2:L" & lastRow).Copy
+    End With
+
+    wsSoporte.Range("A2").PasteSpecial Paste:=xlPasteValuesAndNumberFormats
+    Application.CutCopyMode = False
+
+    ' Copy column M from SOPORTE and paste in PowerBI L2
+    With wsSoporte
+        .Range("M2:M" & lastRow).Copy
+    End With
+
+    wsPowerBI.Range("L2").PasteSpecial Paste:=xlPasteValuesAndNumberFormats
+    Application.CutCopyMode = False
+
+End Sub
