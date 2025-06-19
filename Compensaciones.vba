@@ -1,7 +1,7 @@
 '+------------------------------------------------------------------+
 '| Author: Marco Cot         DAS:A669714                            |
 '| Program which allows to check compensations before month closing.|
-'| version: 2.3 [20250609]                                          |
+'| version: 2.3.1 [20250619]                                          |
 '+------------------------------------------------------------------+
 Sub DateConversion()
 
@@ -24,7 +24,7 @@ Worksheets("COMPENSACIONESClean").Visible = xlSheetVisible
 Sheets("Compens").Outline.ShowLevels RowLevels:=0, ColumnLevels:=2
 Sheets("TAB").Outline.ShowLevels RowLevels:=0, ColumnLevels:=2
 
-Sheets("Festivos").Range("A:BK").Copy
+Sheets("Festivos").Range("A:BL").Copy
 Sheets("FestivosClean").Range("A1").PasteSpecial Paste:=xlPasteValuesAndNumberFormats
 
 Sheets("VALID").Range("A:BI").Copy
@@ -37,8 +37,8 @@ DeleteRowsAbsence
 
 'consolidate hours
 Sheets("FestivosClean").Select
-RowCounter = Application.WorksheetFunction.CountA(Range("BK:BK"))
-Range("BK2:BK" & RowCounter).Copy
+RowCounter = Application.WorksheetFunction.CountA(Range("BL:BL"))
+Range("BL2:BL" & RowCounter).Copy
 Range("P2:P" & RowCounter).PasteSpecial xlPasteValuesAndNumberFormats
 Range("AG2:AG" & RowCounter).PasteSpecial xlPasteValuesAndNumberFormats
 RemoveDuplicatesBasedOnTwoColumns
@@ -153,13 +153,13 @@ Sub RemoveDuplicatesBasedOnTwoColumns()
     Dim dict As Object
 
     Set ws = ThisWorkbook.Sheets("FESTIVOSClean")
-    lastRow = ws.Cells(ws.Rows.Count, "BJ").End(xlUp).Row
+    lastRow = ws.Cells(ws.Rows.Count, "BK").End(xlUp).Row
     Set dict = CreateObject("Scripting.Dictionary")
     
     ' Loop from bottom to top to safely delete rows
     For i = lastRow To 2 Step -1 ' Assuming row 1 is header
         Dim val As Variant
-        val = ws.Cells(i, "BJ").Value
+        val = ws.Cells(i, "BK").Value
 
         If dict.exists(val) Then
             ws.Rows(i).Delete
