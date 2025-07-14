@@ -1,7 +1,7 @@
 '+------------------------------------------------------------------+
 '| Author: Marco Cot         DAS:A669714                            |
 '| Program which allows to check compensations before month closing.|
-'| version: 2.3.1 [20250619]                                          |
+'| version: 2.4 [20250714]                                          |
 '+------------------------------------------------------------------+
 Sub DateConversion()
 
@@ -14,6 +14,7 @@ Dim StartTime As Date
 Dim EndTime As Date
 Dim TimeUsed As Double
 Dim TimeFormatted As String
+Dim Trigger As Double
 
 StartTime = Now
 
@@ -37,12 +38,16 @@ DeleteRowsAbsence
 
 'consolidate hours
 Sheets("FestivosClean").Select
+Trigger = Application.WorksheetFunction.CountA(Range("A:A"))
+If Trigger = 1 Then GoTo JumpHere
 RowCounter = Application.WorksheetFunction.CountA(Range("BL:BL"))
 Range("BL2:BL" & RowCounter).Copy
 Range("P2:P" & RowCounter).PasteSpecial xlPasteValuesAndNumberFormats
 Range("AG2:AG" & RowCounter).PasteSpecial xlPasteValuesAndNumberFormats
 RemoveDuplicatesBasedOnTwoColumns
 
+
+JumpHere:
 UpdateFestivos
 
 DateCounter = Application.WorksheetFunction.CountA(Range("BL:BL"))
@@ -252,8 +257,11 @@ Sub UpdateFestivos()
 
     Dim LastRowFest As Long
     Dim LastRowTAB As Long
+    Dim Trigger As Double
     
     Sheets("FESTIVOSClean").Select
+    Trigger = Application.WorksheetFunction.CountA(Range("A:A"))
+    If Trigger = 1 Then GoTo Shortcut
     LastRowFest = Application.WorksheetFunction.CountA(Range("B:B"))
     Range("B2:B" & LastRowFest).Select
     Selection.Copy
@@ -319,6 +327,8 @@ Sub UpdateFestivos()
     Range("H" & LastRowTAB).Select
     ActiveSheet.Paste
     Range("Q" & LastRowTAB & ":Q" & LastRowTAB + LastRowFest - 2).Formula = "CURRENT MONTH"
+    
+Shortcut:
     
 End Sub
 '+-----------------------------------------------------------------------------------------------+
